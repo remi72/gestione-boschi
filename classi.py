@@ -120,35 +120,6 @@ class Proprietario:
         db.eseguiAggiornamento()
 
 
-class Cliente:
-    def __init__(self, idcliente, cognome, nome, citta, indirizzo, numero, provincia, tel):
-        self.idcliente = idcliente
-        self.cognome = cognome
-        self.nome = nome
-        self.citta = citta
-        self.indirizzo = indirizzo
-        self.numero = numero
-        self.provincia = provincia
-        self.tel = tel
-
-    def inserisciCliente(self):
-        db.query = u"INSERT INTO cliente (cognome, nome, citta, indirizzo, numero, provincia, tel) \
-                    VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}' , '{6}')".format \
-            (self.cognome, self.nome, self.citta, self.indirizzo, self.numero, self.provincia, self.tel)
-        db.eseguiAggiornamento()
-
-    def eliminaCliente(self):
-        db.query = "DELETE FROM cliente WHERE idcliente = '{0}'".format(self.idcliente)
-        db.eseguiAggiornamento()
-
-    def modificaCliente(self):
-        db.query = u'''UPDATE cliente  SET cognome = '{0}', nome = '{1}', citta = '{2}', indirizzo = '{3}',
-                      numero = '{4}', provincia = '{5}' ,tel = '{6}' WHERE idcliente = '{7}'
-                   '''.format(self.cognome, self.nome, self.citta, self.indirizzo, self.numero, self.provincia,
-                              self.tel, self.idcliente)
-        db.eseguiAggiornamento()
-
-
 class Bosco:
     def __init__(self, idbosco, idproprietario, luogo, mappale, denuncia_taglio, data_denuncia,
                  prezzomc, prezzoq, forfait, corteccia, venditamc):
