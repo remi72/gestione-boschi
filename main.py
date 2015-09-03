@@ -1395,9 +1395,7 @@ def crea_lista_boschi(stringa=''):
     global boschi, proprietari
     boschi = funzioni.leggiBoschi(stringa)
     proprietari = funzioni.leggiProprietari()
-    lista_boschi = []
-    for Bosco in boschi:
-        lista_boschi.append('{} {}'.format(Bosco.luogo, str(Bosco.mappale)))
+    lista_boschi = [str(Bosco) for Bosco in boschi]
     return lista_boschi
 
 
