@@ -168,6 +168,9 @@ class Bosco:
                                  self.corteccia, self.venditamc, self.idbosco)
         db.eseguiAggiornamento()
 
+    def __str__(self):
+        return u'{0} {1}'.format(self.luogo, str(self.mappale))
+
 
 class OreLavoro:
     def __init__(self, idore, idbosco, data, numero_ore, prezzo_uni, tipo_lavoro, totale, note):
