@@ -18,9 +18,9 @@ class Tronco:
 
     def inserisciTronco(self):
         db.query = u'''INSERT INTO tronco (idbosco, specie, placchetta, lunghezza, diametro, mc)
-                 VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}')
-                 '''.format(self.idbosco, self.specie, self.placchetta, self.lunghezza, self.diametro,
-                            self.mc)
+                       VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}')
+                       '''.format(self.idbosco, self.specie, self.placchetta, self.lunghezza, self.diametro,
+                                  self.mc)
         db.eseguiAggiornamento()
 
     def eliminaTronco(self):
@@ -29,9 +29,9 @@ class Tronco:
 
     def modificaTronco(self):
         db.query = u'''UPDATE tronco  SET idbosco = '{0}', specie = '{1}', placchetta = '{2}',
-                 lunghezza = '{3}', diametro = '{4}', mc = '{5}' WHERE idtronco = '{6}'
-                 '''.format(self.idbosco, self.specie, self.placchetta, self.lunghezza,
-                            self.diametro, self.mc, self.idtronco)
+                       lunghezza = '{3}', diametro = '{4}', mc = '{5}' WHERE idtronco = '{6}'
+                       '''.format(self.idbosco, self.specie, self.placchetta, self.lunghezza,
+                                  self.diametro, self.mc, self.idtronco)
         db.eseguiAggiornamento()
 
 
@@ -57,9 +57,9 @@ class Ardere:
 
     def modificaArdere(self):
         db.query = u'''UPDATE ardere SET idbosco = '{0}', data = '{1}',
-                      quintali = '{2}', prezzo = '{3}', totale = '{4}', note = '{5}' WHERE idardere = '{6}'
-                   '''.format(self.idbosco, self.data, self.quintali, self.prezzo, self.totale,
-                              self.note, self.idardere)
+                       quintali = '{2}', prezzo = '{3}', totale = '{4}', note = '{5}' WHERE idardere = '{6}'
+                       '''.format(self.idbosco, self.data, self.quintali, self.prezzo, self.totale,
+                                  self.note, self.idardere)
         db.eseguiAggiornamento()
 
 
@@ -76,9 +76,9 @@ class Spesa:
 
     def inserisciSpesa(self):
         db.query = u'''INSERT INTO spesa (idbosco, data, tipo, prezzo_uni, unita, totale, note)
-                    VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}')
-                    '''.format(self.idbosco, self.data, self.tipo, self.prezzo_uni, self.unita,
-                               self.totale, self.note)
+                       VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}')
+                       '''.format(self.idbosco, self.data, self.tipo, self.prezzo_uni, self.unita,
+                                  self.totale, self.note)
         db.eseguiAggiornamento()
 
     def eliminaSpesa(self):
@@ -87,9 +87,9 @@ class Spesa:
 
     def modificaSpesa(self):
         db.query = u'''UPDATE spesa SET idbosco = '{0}', data = '{1}', tipo = '{2}',
-                    prezzo_uni = '{3}', unita = '{4}', totale = '{5}', note = '{6}' WHERE idspesa = '{7}'
-                    '''.format(self.idbosco, self.data, self.tipo, self.prezzo_uni, self.unita, self.totale,
-                               self.note, self.idspesa)
+                       prezzo_uni = '{3}', unita = '{4}', totale = '{5}', note = '{6}' WHERE idspesa = '{7}'
+                       '''.format(self.idbosco, self.data, self.tipo, self.prezzo_uni, self.unita, self.totale,
+                                  self.note, self.idspesa)
         db.eseguiAggiornamento()
 
 
@@ -106,9 +106,9 @@ class Proprietario:
 
     def inserisciProprietario(self):
         db.query = u'''INSERT INTO proprietario (cognome, nome, citta, indirizzo, numero, provincia, tel)
-                      VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}' ,'{6}')
-                      '''.format(self.cognome, self.nome, self.citta, self.indirizzo, self.numero,
-                                 self.provincia, self.tel)
+                       VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}' ,'{6}')
+                       '''.format(self.cognome, self.nome, self.citta, self.indirizzo, self.numero,
+                                  self.provincia, self.tel)
         db.eseguiAggiornamento()
 
     def eliminaProprietario(self):
@@ -117,9 +117,9 @@ class Proprietario:
 
     def modificaProprietario(self):
         db.query = u'''UPDATE proprietario  SET cognome = '{0}', nome = '{1}', citta = '{2}', indirizzo = '{3}',
-                      numero = '{4}', provincia = '{5}' ,tel = '{6}' WHERE idproprietario = '{7}'
-                   '''.format(self.cognome, self.nome, self.citta, self.indirizzo, self.numero, self.provincia,
-                              self.tel, self.idproprietario)
+                       numero = '{4}', provincia = '{5}' ,tel = '{6}' WHERE idproprietario = '{7}'
+                       '''.format(self.cognome, self.nome, self.citta, self.indirizzo, self.numero, self.provincia,
+                                  self.tel, self.idproprietario)
         db.eseguiAggiornamento()
 
 
@@ -140,11 +140,11 @@ class Bosco:
 
     def inserisciBosco(self):
         db.query = u'''INSERT INTO bosco (idproprietario, luogo, mappale, denuncia_taglio, data_denuncia,
-                      prezzomc, prezzoq, forfait, corteccia, venditamc)
-                      VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}')
-                      '''.format(self.idproprietario, self.luogo, self.mappale, self.denuncia_taglio,
-                                 self.data_denuncia, self.prezzomc, self.prezzoq, self.forfait,
-                                 self.corteccia, self.venditamc)
+                       prezzomc, prezzoq, forfait, corteccia, venditamc)
+                       VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}')
+                       '''.format(self.idproprietario, self.luogo, self.mappale, self.denuncia_taglio,
+                                  self.data_denuncia, self.prezzomc, self.prezzoq, self.forfait,
+                                  self.corteccia, self.venditamc)
         db.eseguiAggiornamento()
 
     def eliminaBosco(self):
@@ -163,12 +163,12 @@ class Bosco:
 
     def modificaBosco(self):
         db.query = u'''UPDATE bosco  SET idproprietario = '{0}',
-                      luogo = '{1}', mappale = '{2}', denuncia_taglio = '{3}',
-                      data_denuncia = '{4}', prezzomc = '{5}', prezzoq = '{6}',
-                      forfait = '{7}', corteccia = '{8}', venditamc = '{9}' WHERE idbosco = '{10}'
-                      '''.format(self.idproprietario, self.luogo, self.mappale, self.denuncia_taglio,
-                                 self.data_denuncia, self.prezzomc, self.prezzoq, self.forfait,
-                                 self.corteccia, self.venditamc, self.idbosco)
+                       luogo = '{1}', mappale = '{2}', denuncia_taglio = '{3}',
+                       data_denuncia = '{4}', prezzomc = '{5}', prezzoq = '{6}',
+                       forfait = '{7}', corteccia = '{8}', venditamc = '{9}' WHERE idbosco = '{10}'
+                       '''.format(self.idproprietario, self.luogo, self.mappale, self.denuncia_taglio,
+                                  self.data_denuncia, self.prezzomc, self.prezzoq, self.forfait,
+                                  self.corteccia, self.venditamc, self.idbosco)
         db.eseguiAggiornamento()
 
     def __str__(self):
@@ -188,9 +188,9 @@ class OreLavoro:
 
     def inserisciOre(self):
         db.query = u'''INSERT INTO ore_lavoro (idbosco, data, numero_ore, prezzo_uni, tipo_lavoro, totale, note)
-                    VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}')
-                    '''.format(self.idbosco, self.data, self.numero_ore, self.prezzo_uni, self.tipo_lavoro,
-                               self.totale, self.note)
+                       VALUES ('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}')
+                       '''.format(self.idbosco, self.data, self.numero_ore, self.prezzo_uni, self.tipo_lavoro,
+                                  self.totale, self.note)
         db.eseguiAggiornamento()
 
     def eliminaOre(self):
@@ -199,7 +199,7 @@ class OreLavoro:
 
     def modificaOre(self):
         db.query = u'''UPDATE ore_lavoro  SET idbosco = '{0}', data = '{1}', numero_ore = '{2}', prezzo_uni = '{3}',
-                    tipo_lavoro = '{4}', totale = '{5}', note = '{6}' WHERE idore = '{7}'
-                    '''.format(self.idbosco, self.data, self.numero_ore, self.prezzo_uni, self.tipo_lavoro,
-                               self.totale, self.note, self.idore)
+                       tipo_lavoro = '{4}', totale = '{5}', note = '{6}' WHERE idore = '{7}'
+                       '''.format(self.idbosco, self.data, self.numero_ore, self.prezzo_uni, self.tipo_lavoro,
+                                  self.totale, self.note, self.idore)
         db.eseguiAggiornamento()
