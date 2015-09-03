@@ -169,7 +169,7 @@ class Bosco:
         db.eseguiAggiornamento()
 
     def __str__(self):
-        return u'{0} {1}'.format(self.luogo, str(self.mappale))
+        return u'{0} {1}'.format(self.luogo, self.mappale)
 
 
 class OreLavoro:
