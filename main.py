@@ -1424,7 +1424,8 @@ class Finestra(wx.Frame):
     def __init__(self, *a, **k):
         wx.Frame.__init__(self, *a, title='Gestione Boschi', size=wx.Size(850, 625),
                           style=wx.DEFAULT_FRAME_STYLE^wx.MAXIMIZE_BOX^wx.RESIZE_BORDER)
-        #self.SetFont(wx.Font(10, 70, 90, 90))
+        if os.name in ("nt", "dos", "ce"):
+            self.SetFont(wx.Font(10, 70, 90, 90))
 
         menubar = wx.MenuBar()
 
