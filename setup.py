@@ -19,5 +19,4 @@ setup(name = 'Gestione Tronchi',
           }
       ],
       options = {'py2exe':{'packages':packages}},
-      data_files = [('', ['schemaDati.sql',])]
 )

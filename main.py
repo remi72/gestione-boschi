@@ -2,7 +2,6 @@
 __author__ = 'remigioscolari'
 
 import wx.grid
-import funzioni
 from classi import *
 from validatore import *
 from stampa import stampa
@@ -11,7 +10,6 @@ import os
 import shutil
 
 boschi = []
-proprietari = []
 tronchi = []
 totalemc = 0
 corteccia = False
@@ -81,12 +79,7 @@ class PannelloPrincipale(wx.Panel):
     def selezioneBosco(self, event):
         n = self.lista_boschi_listbox.GetSelections()
         bosco = boschi[n[0]]
-        proprietario_bosco = 0
-        for proprietario in proprietari:
-            if bosco.idproprietario == proprietario.idproprietario:
-                proprietario_bosco = proprietario
-                break
-        self.pannello_bosco.dati_bosco(bosco, proprietario_bosco)
+        self.pannello_bosco.dati_bosco(bosco)
         self.pannello_tronchi.crea_griglia_tronchi()
         self.pannello_ardere.crea_griglia_ardere()
         self.pannello_spese.crea_griglia_spesa()
@@ -97,14 +90,7 @@ class PannelloPrincipale(wx.Panel):
         dlg = DlgInserisciBosco(self)
         retcode = dlg.ShowModal()
         if retcode == wx.ID_OK:
-            proprietario, bosco = dlg.leggi_dati()
-            proprietario.inserisciProprietario()
-            db = Db("SELECT * FROM proprietario ORDER BY idproprietario DESC LIMIT 1")
-            idproprietario = (db.eseguiQuery())[0][0]
-
-            bosco.idproprietario = idproprietario
-            bosco.inserisciBosco()
-
+            dlg.leggi_dati()
             frame.pannello_principale.lista_boschi_listbox.SetItems(crea_lista_boschi())
             self.pannello_bosco.azzera()
             dlg.Destroy()
@@ -175,16 +161,17 @@ class PannelloBosco(wx.Panel):
         self.button_modifica_bosco.Bind(wx.EVT_BUTTON, self.modifica_bosco)
         self.button_elimina_bosco.Bind(wx.EVT_BUTTON, self.elimina_bosco)
 
-    def dati_bosco(self, bosco, proprietario):
-        self.nome.SetValue(proprietario.nome)
-        self.cognome.SetValue(proprietario.cognome)
-        self.citta.SetValue(proprietario.citta)
-        self.indirizzo.SetValue(proprietario.indirizzo)
+    def dati_bosco(self, bosco):
+        proprietario = bosco.proprietari[0]
+        self.nome.SetValue(proprietario.nome.title())
+        self.cognome.SetValue(proprietario.cognome.title())
+        self.citta.SetValue(proprietario.citta.title())
+        self.indirizzo.SetValue(proprietario.indirizzo.title())
         self.numero.SetValue(proprietario.numero)
-        self.provincia.SetValue(proprietario.provincia)
+        self.provincia.SetValue(proprietario.provincia.upper())
         self.telefono.SetValue(proprietario.tel)
-        self.luogo.SetValue(bosco.luogo)
-        self.mappale.SetValue(bosco.mappale)
+        self.luogo.SetValue(bosco.luogo.title())
+        self.mappale.SetValue(str(bosco.mappale))
         self.denuncia.SetValue(bosco.denuncia_taglio)
         self.data.SetValue(bosco.data_denuncia.strftime('%d-%m-%Y'))
         self.prezzomc.SetValue('{:.2f}'.format(bosco.prezzomc) if bosco.prezzomc != 0 else '')
@@ -209,23 +196,17 @@ class PannelloBosco(wx.Panel):
 
     def modifica_bosco(self, event):
         n = frame.pannello_principale.lista_boschi_listbox.GetSelections()
-        p = 0
+
         try:
             bosco = boschi[n[0]]
-            for proprietario in proprietari:
-                if bosco.idproprietario == proprietario.idproprietario:
-                    p = proprietario
-                    break
         except IndexError:
             wx.MessageBox('seleziona un bosco')
             return
 
-        dlg = DlgInserisciBosco(self, bosco, p)
+        dlg = DlgInserisciBosco(self, bosco)
         retcode = dlg.ShowModal()
         if retcode == wx.ID_OK:
-            proprietario, bosco = dlg.leggi_dati()
-            proprietario.modificaProprietario()
-            bosco.modificaBosco()
+            dlg.leggi_dati()
             frame.pannello_principale.lista_boschi_listbox.SetItems(crea_lista_boschi())
             self.azzera()
             dlg.Destroy()
@@ -235,7 +216,7 @@ class PannelloBosco(wx.Panel):
         try:
             bosco = boschi[n[0]]
             if dlg_yes_no(self, question='Se elimini il bosco tutti i dati associati al bosco verranno eliminati'):
-                bosco.eliminaBosco()
+                bosco.delete(bosco.id)
             frame.pannello_principale.lista_boschi_listbox.SetItems(crea_lista_boschi())
             self.azzera()
         except IndexError:
@@ -336,7 +317,7 @@ class PannelloTronchi(wx.Panel):
             corteccia = False
         self.corteccia.SetValue(corteccia)
         self.prezzo_vendita.SetValue(str(bosco.venditamc) if bosco.venditamc != 0 else '')
-        tronchi = funzioni.leggiTronchi(bosco)
+        tronchi = list(bosco.tronchi)
         righe = self.tabella_tronchi.GetNumberRows()
         if righe > 0:
             self.tabella_tronchi.DeleteRows(0, righe)
@@ -385,7 +366,7 @@ class PannelloTronchi(wx.Panel):
         try:
             tronco = tronchi[n[0]]
             if dlg_yes_no(self):
-                tronco.eliminaTronco()
+                tronco.delete(tronco.id)
             self.crea_griglia_tronchi()
 
         except IndexError:
@@ -420,7 +401,6 @@ class PannelloTronchi(wx.Panel):
             bosco.corteccia = 1
         else:
             bosco.corteccia = 0
-        bosco.modificaBosco()
         self.fai_totale_netto()
 
     def venditacg(self, event):
@@ -439,7 +419,6 @@ class PannelloTronchi(wx.Panel):
             self.prezzo_vendita.SetFocus()
             return
         bosco.venditamc = prezzo_vendita
-        bosco.modificaBosco()
         self.fai_totale_netto()
 
     def fai_stampa(self, event):
@@ -538,7 +517,7 @@ class PannelloArdere(wx.Panel):
         n = frame.pannello_principale.lista_boschi_listbox.GetSelections()
         bosco = boschi[n[0]]
         global legna_da_ardere
-        legna_da_ardere = funzioni.leggiArdere(bosco)
+        legna_da_ardere = list(bosco.arderes)
         righe = self.tabella_ardere.GetNumberRows()
         if righe > 0:
             self.tabella_ardere.DeleteRows(0, righe)
@@ -569,8 +548,7 @@ class PannelloArdere(wx.Panel):
         dlg = DlgInserisciArdere(self, bosco)
         retcode = dlg.ShowModal()
         if retcode == wx.ID_OK:
-            ardere = dlg.leggi_dati()
-            ardere.inserisciArdere()
+            dlg.leggi_dati()
         self.crea_griglia_ardere()
 
     def modifica_ardere(self, event):
@@ -586,8 +564,7 @@ class PannelloArdere(wx.Panel):
             dlg = DlgInserisciArdere(self, bosco, ardere)
             retcode = dlg.ShowModal()
             if retcode == wx.ID_OK:
-                ardere = dlg.leggi_dati()
-                ardere.modificaArdere()
+                dlg.leggi_dati()
             self.crea_griglia_ardere()
         except IndexError:
             wx.MessageBox('seleziona la legna')
@@ -598,7 +575,7 @@ class PannelloArdere(wx.Panel):
         try:
             ardere = legna_da_ardere[n[0]]
             if dlg_yes_no(self):
-                ardere.eliminaArdere()
+                ardere.delete(ardere.id)
             self.crea_griglia_ardere()
         except IndexError:
             wx.MessageBox(u"seleziona la legna da eliminare")
@@ -674,7 +651,7 @@ class PannelloSpese(wx.Panel):
         n = frame.pannello_principale.lista_boschi_listbox.GetSelections()
         bosco = boschi[n[0]]
         global spese
-        spese = funzioni.leggiSpese(bosco)
+        spese = list(bosco.spese)
         righe = self.tabella_spese.GetNumberRows()
         if righe > 0:
             self.tabella_spese.DeleteRows(0, righe)
@@ -702,8 +679,7 @@ class PannelloSpese(wx.Panel):
         dlg = DlgInserisciSpesa(self, bosco)
         retcode = dlg.ShowModal()
         if retcode == wx.ID_OK:
-            spesa = dlg.leggi_dati()
-            spesa.inserisciSpesa()
+            dlg.leggi_dati()
         self.crea_griglia_spesa()
 
     def modifica_spesa(self, event):
@@ -719,8 +695,7 @@ class PannelloSpese(wx.Panel):
             dlg = DlgInserisciSpesa(self, bosco, spesa)
             retcode = dlg.ShowModal()
             if retcode == wx.ID_OK:
-                spesa = dlg.leggi_dati()
-                spesa.modificaSpesa()
+                dlg.leggi_dati()
                 self.crea_griglia_spesa()
         except IndexError:
             wx.MessageBox(u"seleziona la spesa")
@@ -731,7 +706,7 @@ class PannelloSpese(wx.Panel):
         try:
             spesa = spese[n[0]]
             if dlg_yes_no(self):
-                spesa.eliminaSpesa()
+                spesa.delete(spesa.id)
             self.crea_griglia_spesa()
         except IndexError:
             wx.MessageBox(u"seleziona la spesa da eliminare")
@@ -811,7 +786,7 @@ class PannelloOre(wx.Panel):
         n = frame.pannello_principale.lista_boschi_listbox.GetSelections()
         bosco = boschi[n[0]]
         global lista_ore, totale_ore, totale_euro_ore
-        lista_ore = funzioni.leggiOre(bosco)
+        lista_ore = list(bosco.ore)
         righe = self.tabella_ore.GetNumberRows()
         if righe > 0:
             self.tabella_ore.DeleteRows(0, righe)
@@ -841,8 +816,7 @@ class PannelloOre(wx.Panel):
         dlg = DlgInserisciOre(self, bosco)
         retcode = dlg.ShowModal()
         if retcode == wx.ID_OK:
-            ore = dlg.leggi_dati()
-            ore.inserisciOre()
+            dlg.leggi_dati()
         self.crea_griglia_ore()
 
     def modifica_ore(self, event):
@@ -858,8 +832,7 @@ class PannelloOre(wx.Panel):
             dlg = DlgInserisciOre(self, bosco, ore)
             retcode = dlg.ShowModal()
             if retcode == wx.ID_OK:
-                ore = dlg.leggi_dati()
-                ore.modificaOre()
+                dlg.leggi_dati()
             self.crea_griglia_ore()
 
         except IndexError:
@@ -871,11 +844,11 @@ class PannelloOre(wx.Panel):
         try:
             ore = lista_ore[n[0]]
             if dlg_yes_no(self):
-                ore.eliminaOre()
+                ore.delete(ore.id)
             self.crea_griglia_ore()
 
         except IndexError:
-            wx.MessageBox(u"seleziona la spesa da eliminare")
+            wx.MessageBox(u"seleziona le ore da eliminare")
             return
 
 
@@ -1010,10 +983,9 @@ class PannelloTotali(wx.Panel):
 
 
 class DlgInserisciBosco(wx.Dialog):
-    def __init__(self, parent, bosco=0, proprietario=0):
+    def __init__(self, parent, bosco=0):
         wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title='Nuovo Bosco')
         self.bosco = bosco
-        self.proprietario = proprietario
         self.SetSizeHintsSz(wx.DefaultSize, wx.DefaultSize)
 
         self.cognome = wx.TextCtrl(self, validator=NotEmptyValidator())
@@ -1041,19 +1013,20 @@ class DlgInserisciBosco(wx.Dialog):
         self.button_ok.SetDefault()
         self.button_cancel = wx.Button(self, wx.ID_CANCEL, u"Annulla")
 
-        if bosco != 0 and proprietario != 0:
-            self.cognome.SetValue(proprietario.cognome)
-            self.nome.SetValue(proprietario.nome)
-            self.citta.SetValue(proprietario.citta)
-            self.indirizzo.SetValue(proprietario.indirizzo)
+        if bosco != 0:
+            proprietario = bosco.proprietari[0]
+            self.cognome.SetValue(proprietario.cognome.title())
+            self.nome.SetValue(proprietario.nome.title())
+            self.citta.SetValue(proprietario.citta.title())
+            self.indirizzo.SetValue(proprietario.indirizzo.title())
             self.n.SetValue(proprietario.numero)
-            self.provincia.SetValue(proprietario.provincia)
+            self.provincia.SetValue(proprietario.provincia.upper())
             self.tel.SetValue(proprietario.tel)
 
-            self.luogo.SetValue(bosco.luogo)
-            self.mappale.SetValue(bosco.mappale)
+            self.luogo.SetValue(bosco.luogo.title())
+            self.mappale.SetValue(str(bosco.mappale))
             self.denuncia_taglio.SetValue(bosco.denuncia_taglio)
-            self.data_denuncia.SetValue(funzioni.wxdatetime_from_db_date(bosco.data_denuncia))
+            self.data_denuncia.SetValue(wxdatetime_from_db_date(bosco.data_denuncia))
             self.prezzomc.SetValue(str(bosco.prezzomc))
             self.prezzoq.SetValue(str(bosco.prezzoq))
             self.forfait.SetValue(str(bosco.forfait))
@@ -1114,29 +1087,49 @@ class DlgInserisciBosco(wx.Dialog):
         self.Centre(wx.BOTH)
 
     def leggi_dati(self):
-        idproprietario = self.proprietario.idproprietario if self.proprietario != 0 else ''
-        cognome = self.cognome.GetValue().capitalize()
-        nome = self.nome.GetValue().capitalize()
-        citta = self.citta.GetValue().title()
-        indirizzo = self.indirizzo.GetValue().title()
+        luogo = self.luogo.GetValue().lower()
+        mappale = int(self.mappale.GetValue())
+        denuncia_taglio = self.denuncia_taglio.GetValue()
+        data_denuncia = self.data_denuncia.GetValue().FormatISODate()
+        prezzomc = float(self.prezzomc.GetValue()) if self.prezzomc.Value != '' else 0
+        prezzoq = float(self.prezzoq.GetValue()) if self.prezzoq.Value != '' else 0
+        forfait = float(self.forfait.GetValue()) if self.forfait.Value != '' else 0
+        cognome = self.cognome.GetValue()
+        nome = self.nome.GetValue()
+        citta = self.citta.GetValue()
+        indirizzo = self.indirizzo.GetValue()
         n = self.n.GetValue()
-        provincia = self.provincia.GetValue().upper()
+        provincia = self.provincia.GetValue()
         tel = self.tel.GetValue()
-        proprietario = Proprietario(idproprietario, cognome, nome, citta, indirizzo, n, provincia, tel)
 
-        idbosco = self.bosco.idbosco if self.bosco != 0 else ''
-        luogo = self.luogo.Value
-        mappale = self.mappale.Value if self.mappale.Value != '' else 'Null'
-        denuncia_taglio = self.denuncia_taglio.Value if self.denuncia_taglio.Value != '' else 'Null'
-        data_denuncia = self.data_denuncia.Value.FormatISODate()
-        prezzomc = self.prezzomc.Value if self.prezzomc.Value != '' else 0
-        prezzoq = self.prezzoq.Value if self.prezzoq.Value != '' else 0
-        forfait = self.forfait.Value if self.forfait.Value != '' else 0
+        if self.bosco != 0:
+            self.bosco.luogo=luogo
+            self.bosco.mappale=mappale
+            self.bosco.denuncia_taglio=denuncia_taglio
+            self.bosco.data_denuncia=data_denuncia
+            self.bosco.prezzomc=prezzomc
+            self.bosco.prezzoq=prezzoq
+            self.bosco.forfait=forfait
+            self.bosco.corteccia=self.corteccia
+            self.bosco.venditamc=self.venditamc
 
-        bosco = Bosco(idbosco, idproprietario, luogo, mappale, denuncia_taglio, data_denuncia, prezzomc, prezzoq,
-                      forfait, self.corteccia, self.venditamc)
+            proprietario = self.bosco.proprietari[0]
+            proprietario.cognome=cognome
+            proprietario.nome=nome
+            proprietario.citta=citta
+            proprietario.indirizzo=indirizzo
+            proprietario.numero=n
+            proprietario.provincia=provincia
+            proprietario.tel=tel
+            proprietario.bosco=self.bosco
 
-        return proprietario, bosco
+        else:
+            bosco = Bosco(luogo=luogo, mappale=mappale, denuncia_taglio=denuncia_taglio,
+                          data_denuncia=data_denuncia, prezzomc=prezzomc, prezzoq=prezzoq,
+                          forfait=forfait, corteccia=self.corteccia, venditamc=self.venditamc)
+
+            Proprietario(cognome=cognome, nome=nome, citta=citta, indirizzo=indirizzo, numero=n,
+                         provincia=provincia, tel=tel, bosco=bosco )
 
 
 class DlgInserisciTronco(wx.Dialog):
@@ -1209,16 +1202,18 @@ class DlgInserisciTronco(wx.Dialog):
             self.diametro.Refresh()
             self.diametro.SetFocus()
             return
-        idbosco = self.bosco.idbosco
         specie = self.specie.GetValue()
         mc = round(((diametro ** 2 * pi * lunghezza) / 40000), 3)
         if self.tronco != 0:
-            t = Tronco(self.tronco.idtronco, idbosco, specie, placchetta, lunghezza, diametro, mc)
-            t.modificaTronco()
+            self.tronco.specie=specie
+            self.tronco.placchetta=placchetta
+            self.tronco.lunghezza=lunghezza
+            self.tronco.diametro=diametro
+            self.tronco.mc=mc
             self.Destroy()
         else:
-            t = Tronco('', idbosco, specie, placchetta, lunghezza, diametro, mc)
-            t.inserisciTronco()
+            Tronco(specie=specie, placchetta=placchetta, lunghezza=lunghezza, diametro=diametro,
+                   mc=mc, bosco=self.bosco)
         self.placchetta.SetValue(placchetta + 1)
         self.lunghezza.SetValue('')
         self.diametro.SetValue('')
@@ -1257,7 +1252,7 @@ class DlgInserisciArdere(wx.Dialog):
         gSizer2.Add(self.button_annulla, 0, wx.ALL, 10)
 
         if self.ardere != 0:
-            self.data.SetValue(funzioni.wxdatetime_from_db_date(ardere.data))
+            self.data.SetValue(wxdatetime_from_db_date(ardere.data))
             self.quintali.SetValue(str(ardere.quintali))
             self.prezzo.SetValue(str(ardere.prezzo))
             self.note.SetValue(ardere.note)
@@ -1268,16 +1263,18 @@ class DlgInserisciArdere(wx.Dialog):
 
     def leggi_dati(self):
         data = self.data.Value.FormatISODate()
-        quintali = self.quintali.GetValue()
-        prezzo = self.prezzo.GetValue()
+        quintali = float(self.quintali.GetValue())
+        prezzo = float(self.prezzo.GetValue())
         note = self.note.GetValue()
-        totale = round((float(quintali) * float(prezzo)), 2)
+        totale = round((quintali * prezzo), 2)
         if self.ardere != 0:
-            a = Ardere(self.ardere.idardere, self.bosco.idbosco, data, quintali, prezzo, totale, note)
-            return a
+            self.ardere.data=data
+            self.ardere.quintali=quintali
+            self.ardere.prezzo=prezzo
+            self.ardere.totale=totale
+            self.ardere.note=note
         else:
-            a = Ardere('', self.bosco.idbosco, data, quintali, prezzo, totale, note)
-            return a
+            Ardere(data=data, quintali=quintali, prezzo=prezzo, totale=totale, note=note, bosco=self.bosco)
 
 
 class DlgInserisciOre(wx.Dialog):
@@ -1311,7 +1308,7 @@ class DlgInserisciOre(wx.Dialog):
         gSizer2.Add(self.button_annulla, 0, wx.ALL, 10)
 
         if self.ore != 0:
-            self.data.SetValue(funzioni.wxdatetime_from_db_date(ore.data))
+            self.data.SetValue(wxdatetime_from_db_date(ore.data))
             self.ore_lavoro.SetValue(str(ore.numero_ore))
             self.prezzo.SetValue(str(ore.prezzo_uni))
             self.tipo.SetValue(ore.tipo_lavoro)
@@ -1323,17 +1320,20 @@ class DlgInserisciOre(wx.Dialog):
 
     def leggi_dati(self):
         data = self.data.Value.FormatISODate()
-        ore = self.ore_lavoro.GetValue()
-        prezzo = self.prezzo.GetValue()
+        ore = float(self.ore_lavoro.GetValue())
+        prezzo = float(self.prezzo.GetValue())
         tipo = self.tipo.GetValue()
         note = self.note.GetValue()
-        totale = round((float(ore) * float(prezzo)), 2)
+        totale = round((ore * prezzo), 2)
         if self.ore != 0:
-            o = OreLavoro(self.ore.idore, self.bosco.idbosco, data, ore, prezzo, tipo, totale, note)
-            return o
+            self.ore.data=data
+            self.ore.numero_ore=ore
+            self.ore.prezzo_uni=prezzo
+            self.ore.tipo_lavoro=tipo
+            self.ore.totale=totale
+            self.ore.note=note
         else:
-            o = OreLavoro('', self.bosco.idbosco, data, ore, prezzo, tipo, totale, note)
-            return o
+            OreLavoro(data=data, numero_ore=ore, prezzo_uni=prezzo, tipo_lavoro=tipo, totale=totale, note=note, bosco=self.bosco)
 
 
 class DlgInserisciSpesa(wx.Dialog):
@@ -1366,7 +1366,7 @@ class DlgInserisciSpesa(wx.Dialog):
         gSizer2.Add(self.button_annulla, 0, wx.ALL, 10)
 
         if self.spesa != 0:
-            self.data.SetValue(funzioni.wxdatetime_from_db_date(spesa.data))
+            self.data.SetValue(wxdatetime_from_db_date(spesa.data))
             self.tipo.SetValue(spesa.tipo)
             self.prezzo.SetValue(str(spesa.prezzo_uni))
             self.unita.SetValue(str(spesa.unita))
@@ -1379,23 +1379,30 @@ class DlgInserisciSpesa(wx.Dialog):
     def leggi_dati(self):
         data = self.data.Value.FormatISODate()
         tipo = self.tipo.GetValue()
-        prezzo = self.prezzo.GetValue()
-        unita = self.unita.GetValue() if self.unita.GetValue() != '' else 1
+        prezzo = float(self.prezzo.GetValue())
+        unita = float(self.unita.GetValue()) if self.unita.GetValue() != '' else 1
         note = self.note.GetValue()
         totale = round((float(prezzo) * float(unita)), 2)
         if self.spesa != 0:
-            s = Spesa(self.spesa.idspesa, self.bosco.idbosco, data, tipo, prezzo, unita, totale, note)
-            return s
+            self.spesa.data=data
+            self.spesa.tipo=tipo
+            self.spesa.prezzo_uni=prezzo
+            self.spesa.unita=unita
+            self.spesa.totale=totale
+            self.spesa.note=note
         else:
-            s = Spesa('', self.bosco.idbosco, data, tipo, prezzo, unita, totale, note)
-            return s
+            Spesa(data=data, tipo=tipo, prezzo_uni=prezzo, unita=unita, totale=totale, note=note, bosco=self.bosco)
 
 
 def crea_lista_boschi(stringa=''):
-    global boschi, proprietari
-    boschi = funzioni.leggiBoschi(stringa)
-    proprietari = funzioni.leggiProprietari()
-    lista_boschi = [str(Bosco) for Bosco in boschi]
+    query = '''proprietario.bosco_id = bosco.id AND (cognome LIKE '%{0}%' OR nome LIKE '%{0}%'
+               OR luogo LIKE '%{0}%' OR mappale = '{0}') '''.format(stringa)
+    global boschi
+    lista_boschi = []
+    result = Bosco.select(query, distinct=True, clauseTables=['proprietario'])
+    boschi = list(result)
+    for bosco in boschi:
+        lista_boschi.append('{} {}'.format(bosco.luogo, bosco.mappale))
     return lista_boschi
 
 
@@ -1406,11 +1413,18 @@ def dlg_yes_no(parent, question='', caption='Sei Sicuro di voler eliminare i dat
     return result
 
 
+def wxdatetime_from_db_date(date):
+    day = date.day
+    month = date.month - 1
+    year = date.year
+    return wx.DateTimeFromDMY(day=day, month=month, year=year)
+
+
 class Finestra(wx.Frame):
     def __init__(self, *a, **k):
         wx.Frame.__init__(self, *a, title='Gestione Boschi', size=wx.Size(850, 625),
                           style=wx.DEFAULT_FRAME_STYLE^wx.MAXIMIZE_BOX^wx.RESIZE_BORDER)
-        self.SetFont(wx.Font(10, 70, 90, 90))
+        #self.SetFont(wx.Font(10, 70, 90, 90))
 
         menubar = wx.MenuBar()
 
