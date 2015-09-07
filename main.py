@@ -993,7 +993,7 @@ class DlgInserisciBosco(wx.Dialog):
         self.citta = wx.TextCtrl(self)
         self.indirizzo = wx.TextCtrl(self, size=wx.Size(150, -1))
         self.n = wx.TextCtrl(self, size=wx.Size(50, -1))
-        self.provincia = wx.TextCtrl(self)
+        self.provincia = wx.TextCtrl(self, size=wx.Size(50, -1))
         self.tel = wx.TextCtrl(self)
 
         self.luogo = wx.TextCtrl(self, validator=NotEmptyValidator())
