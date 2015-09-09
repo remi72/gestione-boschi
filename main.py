@@ -1402,7 +1402,7 @@ def crea_lista_boschi(stringa=''):
     result = Bosco.select(query, distinct=True, clauseTables=['proprietario'])
     boschi = list(result)
     for bosco in boschi:
-        lista_boschi.append('{} {}'.format(bosco.luogo, bosco.mappale))
+        lista_boschi.append(u'{} {}'.format(bosco.luogo, bosco.mappale))
     return lista_boschi
 
 
