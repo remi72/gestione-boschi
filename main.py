@@ -8,6 +8,8 @@ from stampa import stampa
 from math import pi
 import os
 import shutil
+import sys
+import logging
 
 boschi = []
 tronchi = []
@@ -1394,6 +1396,32 @@ class DlgInserisciSpesa(wx.Dialog):
             Spesa(data=data, tipo=tipo, prezzo_uni=prezzo, unita=unita, totale=totale, note=note, bosco=self.bosco)
 
 
+class StreamToLogger(object):
+    """
+    Fake file-like stream object that redirects writes to a logger instance.
+    """
+    def __init__(self, logger, log_level=logging.INFO):
+      self.logger = logger
+      self.log_level = log_level
+      self.linebuf = ''
+
+    def write(self, buf):
+      for line in buf.rstrip().splitlines():
+         self.logger.log(self.log_level, line.rstrip())
+
+    if os.name in ("nt", "dos", "ce"):
+        file_log = '%s\\Gestione Boschi\\error.log' %  os.environ['APPDATA']
+    elif os.name == "posix":
+        file_log = '~/Library/Application Support/Gestione Boschi/error.log'
+
+    logging.basicConfig(
+       level=logging.DEBUG,
+       format='%(asctime)s:%(levelname)s:%(name)s:%(message)s',
+       filename=file_log,
+       filemode='a'
+    )
+
+
 def crea_lista_boschi(stringa=''):
     query = '''proprietario.bosco_id = bosco.id AND (cognome LIKE '%{0}%' OR nome LIKE '%{0}%'
                OR luogo LIKE '%{0}%' OR mappale = '{0}') '''.format(stringa)
@@ -1468,6 +1496,10 @@ class Finestra(wx.Frame):
             if dlg_yes_no(self,question='I dati presenti andranno persi', caption='Sei sicuro ?'):
                 shutil.copy(file_origine, file_destinazione)
                 self.pannello_principale.lista_boschi_listbox.SetItems(crea_lista_boschi())
+
+stderr_logger = logging.getLogger('STDERR')
+sl = StreamToLogger(stderr_logger, logging.ERROR)
+sys.stderr = sl
 
 app = wx.App(False)
 frame = Finestra(None)
