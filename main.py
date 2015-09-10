@@ -433,7 +433,7 @@ class PannelloTronchi(wx.Panel):
         if tronchi:
             saveFileDialog = wx.FileDialog(self, message="Salva File",
                                            defaultDir="",
-                                           defaultFile="{}".format(bosco.luogo),
+                                           defaultFile=u"{}".format(bosco.luogo),
                                            wildcard="File PDF (*.pdf)|*.pdf",
                                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             if saveFileDialog.ShowModal() == wx.ID_OK:
